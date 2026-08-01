@@ -170,9 +170,23 @@
   footer{padding:34px 0 60px; color:var(--muted); font-family:var(--mono); font-size:.76rem;
     display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; border-top:1px solid var(--hair)}
 
-  .reveal{opacity:0; transform:translateY(10px); animation:rise .6s cubic-bezier(.2,.7,.2,1) forwards}
-  .reveal:nth-child(2){animation-delay:.05s}.reveal:nth-child(3){animation-delay:.1s}
-  @keyframes rise{to{opacity:1; transform:none}}
+  /* scroll-reveal — chỉ ẩn khi có JS (no-JS vẫn hiện đủ, tốt cho SEO) */
+  .js .reveal{opacity:0; transform:translateY(16px); transition:opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1)}
+  .js .reveal.in{opacity:1; transform:none}
+
+  /* hero canvas node-network (nen mo, sau chu) */
+  .hero{position:relative; overflow:hidden}
+  #net{position:absolute; inset:0; width:100%; height:100%; z-index:0; opacity:.55; pointer-events:none}
+  .hero .wrap{position:relative; z-index:1}
+
+  /* pipeline: stage sang len khi "deploy" chay qua */
+  .stage{transition:transform .3s ease}
+  .stage .k, .stage .dotmark{transition:color .3s ease}
+  .stage.active{transform:translateY(-2px)}
+  .stage.active .k{color:var(--accent)}
+  .stage.active .v{color:var(--ink)}
+  .stage.done .k::after{content:" ✓"; color:var(--ok)}
+  .pipe-status{transition:color .3s ease}
 
   a:focus-visible,.btn:focus-visible,.tbtn:focus-visible,.proj-links a:focus-visible{
     outline:2px solid var(--accent); outline-offset:2px; border-radius:8px}
@@ -194,13 +208,15 @@
   <div class="wrap">
     <div class="brand"><span class="at">~/</span>tran-le-trung-kien</div>
     <div class="topbar-right">
-      <span class="avail"><span class="dot"></span>Available · Remote · GMT+7</span>
+      <span class="avail"><span class="dot"></span>Available · Remote</span>
+      <span class="avail mono" id="clock" title="Giờ Việt Nam (GMT+7)">--:--:--</span>
       <button class="tbtn" id="themeToggle" aria-label="Đổi giao diện sáng/tối" title="Sáng / Tối">◐</button>
     </div>
   </div>
 </div>
 
 <header class="hero">
+  <canvas id="net" aria-hidden="true"></canvas>
   <div class="wrap">
     <p class="eyebrow reveal">// .NET Backend · DevOps / GitOps</p>
     <h1 class="reveal">Trần Lê Trung Kiên</h1>
@@ -235,7 +251,7 @@
   <div class="pipe" aria-label="Vòng CI/CD GitOps đã dựng và chạy thật">
     <div class="pipe-head">
       <span class="t">// deploy-loop &nbsp;·&nbsp; cicd-k8s-lab</span>
-      <span class="chip live"><span class="dot"></span>LIVE</span>
+      <span class="chip live pipe-status" id="pipeStatus"><span class="dot"></span><span id="pipeStatusText">LIVE</span></span>
     </div>
     <div class="pipe-flow">
       <div class="stage"><span class="k">git push</span><span class="v">Commit lên main</span><span class="m">source of truth</span></div>
@@ -421,16 +437,152 @@
 </footer>
 
 <script>
-  (function(){
-    var root=document.documentElement, key="pf-theme";
-    var saved=null; try{saved=localStorage.getItem(key)}catch(e){}
-    if(saved){root.setAttribute("data-theme",saved)}
-    document.getElementById("themeToggle").addEventListener("click",function(){
-      var cur=root.getAttribute("data-theme");
-      if(!cur){cur=matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"}
-      var next=cur==="dark"?"light":"dark";
-      root.setAttribute("data-theme",next);
-      try{localStorage.setItem(key,next)}catch(e){}
+(function(){
+  "use strict";
+  var root=document.documentElement;
+  root.classList.add("js");
+  var reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+  /* ---------- Theme toggle ---------- */
+  var key="pf-theme", saved=null;
+  try{saved=localStorage.getItem(key)}catch(e){}
+  if(saved){root.setAttribute("data-theme",saved)}
+  document.getElementById("themeToggle").addEventListener("click",function(){
+    var cur=root.getAttribute("data-theme");
+    if(!cur){cur=matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"}
+    var next=cur==="dark"?"light":"dark";
+    root.setAttribute("data-theme",next);
+    try{localStorage.setItem(key,next)}catch(e){}
+    readColors();
+  });
+
+  /* ---------- Đồng hồ GMT+7 (độc lập múi giờ người xem) ---------- */
+  var clock=document.getElementById("clock");
+  function pad(n){return(n<10?"0":"")+n}
+  function tick(){
+    var t=new Date(Date.now()+7*3600*1000);
+    clock.textContent=pad(t.getUTCHours())+":"+pad(t.getUTCMinutes())+":"+pad(t.getUTCSeconds())+" GMT+7";
+  }
+  tick(); setInterval(tick,1000);
+
+  /* ---------- Scroll-reveal + đếm số ---------- */
+  var extra=document.querySelectorAll(".cap,.proj,.xp-item,.sec-head,.pipe,.contact h2,.contact p,.contact .cta");
+  extra.forEach(function(el){el.classList.add("reveal")});
+  var reveals=document.querySelectorAll(".reveal");
+
+  function countUp(el){
+    var raw=(el.textContent||"").trim();
+    if(!/^\d+$/.test(raw)) return;               // chỉ đếm số nguyên thuần
+    var target=parseInt(raw,10); if(reduce){el.textContent=target;return;}
+    var start=null, dur=900;
+    function step(ts){
+      if(!start)start=ts; var p=Math.min((ts-start)/dur,1);
+      el.textContent=Math.round((1-Math.pow(1-p,3))*target);
+      if(p<1)requestAnimationFrame(step); else el.textContent=target;
+    }
+    requestAnimationFrame(step);
+  }
+
+  if("IntersectionObserver" in window && !reduce){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(en){
+        if(!en.isIntersecting)return;
+        var el=en.target;
+        // stagger nhẹ theo vị trí trong cùng khối
+        var sibs=el.parentElement?el.parentElement.querySelectorAll(":scope > .reveal"):[el];
+        var idx=Array.prototype.indexOf.call(sibs,el);
+        el.style.transitionDelay=(Math.max(idx,0)*60)+"ms";
+        el.classList.add("in");
+        el.querySelectorAll(".stat .n").forEach(countUp);
+        io.unobserve(el);
+      });
+    },{threshold:0.16, rootMargin:"0px 0px -8% 0px"});
+    reveals.forEach(function(el){io.observe(el)});
+  } else {
+    reveals.forEach(function(el){el.classList.add("in")});
+    document.querySelectorAll(".stat .n").forEach(countUp);
+  }
+
+  /* ---------- Pipeline "deploy" chạy động ---------- */
+  var stages=Array.prototype.slice.call(document.querySelectorAll(".pipe-flow .stage"));
+  var statusText=document.getElementById("pipeStatusText");
+  if(stages.length && !reduce){
+    var i=0, labels=["push received","building","pushing image","argo syncing","rolling out","● LIVE"];
+    function run(){
+      stages.forEach(function(s){s.classList.remove("active","done")});
+      var j=0;
+      (function nextStage(){
+        if(j>0)stages[j-1].classList.add("done");
+        if(j<stages.length){
+          stages[j].classList.add("active");
+          if(statusText)statusText.textContent=labels[j]||"deploying";
+          j++; setTimeout(nextStage,820);
+        } else {
+          stages.forEach(function(s){s.classList.add("done")});
+          if(statusText)statusText.textContent="LIVE";
+          setTimeout(function(){stages.forEach(function(s){s.classList.remove("done")});setTimeout(run,900)},2600);
+        }
+      })();
+    }
+    setTimeout(run,900);
+  }
+
+  /* ---------- Canvas node-network (nền hero, gợi pods/services) ---------- */
+  var cv=document.getElementById("net");
+  if(cv && cv.getContext){
+    var ctx=cv.getContext("2d"), hero=cv.parentElement, DPR=Math.min(devicePixelRatio||1,2);
+    var W=0,H=0,nodes=[],accent="#5a45e6",line="rgba(90,69,230,.18)";
+    function readColors(){
+      var cs=getComputedStyle(root);
+      accent=(cs.getPropertyValue("--accent")||"#5a45e6").trim();
+      var rgb=hexToRgb(accent);
+      line="rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+",.16)";
+    }
+    function hexToRgb(h){
+      h=h.replace("#","");
+      if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      var n=parseInt(h,16); return[(n>>16)&255,(n>>8)&255,n&255];
+    }
+    function resize(){
+      W=hero.clientWidth; H=hero.clientHeight;
+      cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
+      var count=Math.max(14,Math.min(38,Math.round(W/46)));
+      nodes=[];
+      for(var k=0;k<count;k++){
+        nodes.push({x:Math.random()*W,y:Math.random()*H,
+          vx:(Math.random()-.5)*.22,vy:(Math.random()-.5)*.22,r:Math.random()*1.6+1});
+      }
+    }
+    var running=true;
+    function frame(){
+      if(!running)return;
+      ctx.clearRect(0,0,W,H);
+      for(var a=0;a<nodes.length;a++){
+        var p=nodes[a];
+        p.x+=p.vx; p.y+=p.vy;
+        if(p.x<0||p.x>W)p.vx*=-1; if(p.y<0||p.y>H)p.vy*=-1;
+        for(var b=a+1;b<nodes.length;b++){
+          var q=nodes[b], dx=p.x-q.x, dy=p.y-q.y, d=dx*dx+dy*dy;
+          if(d<15000){ ctx.strokeStyle=line; ctx.globalAlpha=1-d/15000;
+            ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); ctx.stroke(); }
+        }
+      }
+      ctx.globalAlpha=1; ctx.fillStyle=accent;
+      for(var c=0;c<nodes.length;c++){var n=nodes[c];
+        ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,6.2832); ctx.fill();}
+      requestAnimationFrame(frame);
+    }
+    readColors(); resize();
+    if(reduce){ frame(); running=false; frame(); } // 1 khung tĩnh
+    else { requestAnimationFrame(frame); }
+    addEventListener("resize",function(){readColors();resize()},{passive:true});
+    document.addEventListener("visibilitychange",function(){
+      if(document.hidden){running=false;}
+      else if(!reduce){running=true;requestAnimationFrame(frame);}
     });
-  })();
+    // expose readColors cho theme toggle
+    window.__pfReadColors=readColors;
+  }
+  function readColors(){ if(window.__pfReadColors)window.__pfReadColors(); }
+})();
 </script>
