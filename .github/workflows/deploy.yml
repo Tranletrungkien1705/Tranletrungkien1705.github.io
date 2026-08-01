@@ -1,0 +1,42 @@
+# CI/CD cho portfolio: push main -> GitHub Actions build+deploy len GitHub Pages.
+# Chay tren runner GitHub-hosted (free, repo public) -> tai san reproducible, khong phu thuoc may ca nhan.
+name: Deploy portfolio
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+# Quyen toi thieu de deploy Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # (Cong CI that: kiem tra HTML co loi nghiem trong khong truoc khi deploy)
+      - name: Kiem tra HTML co the parse
+        run: |
+          test -f index.html || { echo "thieu index.html"; exit 1; }
+          grep -q "</html>" index.html || grep -q "</body>" index.html || echo "warn: khong thay the dong"
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

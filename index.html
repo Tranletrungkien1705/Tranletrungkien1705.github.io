@@ -1,0 +1,436 @@
+<title>Trần Lê Trung Kiên — .NET Backend · DevOps / GitOps</title>
+<meta name="description" content=".NET backend developer who also builds and runs the CI/CD that ships it — GitOps, Kubernetes, automated release pipelines." />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  /* ============ TOKENS ============ */
+  :root{
+    --bg:#f7f7f9; --surface:#ffffff; --card:#f2f3f6; --card-2:#eceef2;
+    --ink:#15171d; --ink-2:#3a3f4b; --muted:#6b7180; --hair:#e3e5ea;
+    --accent:#5a45e6; --accent-ink:#ffffff; --accent-soft:#efecff;
+    --ok:#0f9d58; --ok-soft:#e4f5ec; --ok-ink:#0b7a44;
+    --shadow:0 1px 2px rgba(20,22,30,.04), 0 8px 24px -12px rgba(20,22,30,.12);
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+    --maxw:1080px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0d0e12; --surface:#14161c; --card:#181b22; --card-2:#1f232c;
+      --ink:#edeef2; --ink-2:#c3c7d0; --muted:#969cab; --hair:#262a33;
+      --accent:#9d8cff; --accent-ink:#0d0e12; --accent-soft:#20203a;
+      --ok:#34d399; --ok-soft:#12251d; --ok-ink:#4ade80;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f7f7f9; --surface:#ffffff; --card:#f2f3f6; --card-2:#eceef2;
+    --ink:#15171d; --ink-2:#3a3f4b; --muted:#6b7180; --hair:#e3e5ea;
+    --accent:#5a45e6; --accent-ink:#ffffff; --accent-soft:#efecff;
+    --ok:#0f9d58; --ok-soft:#e4f5ec; --ok-ink:#0b7a44;
+    --shadow:0 1px 2px rgba(20,22,30,.04), 0 8px 24px -12px rgba(20,22,30,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d0e12; --surface:#14161c; --card:#181b22; --card-2:#1f232c;
+    --ink:#edeef2; --ink-2:#c3c7d0; --muted:#969cab; --hair:#262a33;
+    --accent:#9d8cff; --accent-ink:#0d0e12; --accent-soft:#20203a;
+    --ok:#34d399; --ok-soft:#12251d; --ok-ink:#4ade80;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+    line-height:1.6; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px}
+  a{color:inherit}
+  ::selection{background:var(--accent); color:var(--accent-ink)}
+
+  /* mono utility voice */
+  .mono{font-family:var(--mono)}
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--muted); font-weight:600;
+  }
+  .chip{
+    display:inline-flex; align-items:center; gap:.4em; font-family:var(--mono);
+    font-size:.72rem; letter-spacing:.02em; padding:.28em .6em; border-radius:6px;
+    border:1px solid var(--hair); color:var(--ink-2); background:var(--surface); white-space:nowrap;
+  }
+  .chip.live{color:var(--ok-ink); background:var(--ok-soft); border-color:transparent}
+  .chip.live .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);
+    box-shadow:0 0 0 0 var(--ok); animation:pulse 2.4s infinite}
+  .chip.accent{color:var(--accent); background:var(--accent-soft); border-color:transparent}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 55%,transparent)}
+    70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+
+  /* ============ STATUS BAR ============ */
+  .topbar{border-bottom:1px solid var(--hair); background:color-mix(in srgb,var(--bg) 82%,transparent);
+    position:sticky; top:0; z-index:20; backdrop-filter:blur(8px)}
+  .topbar .wrap{display:flex; align-items:center; justify-content:space-between; height:52px; gap:16px}
+  .brand{font-family:var(--mono); font-weight:600; font-size:.86rem; letter-spacing:.02em}
+  .brand .at{color:var(--accent)}
+  .topbar-right{display:flex; align-items:center; gap:14px}
+  .avail{display:inline-flex; align-items:center; gap:.5em; font-family:var(--mono); font-size:.74rem; color:var(--ink-2)}
+  .avail .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 2.4s infinite}
+  .tbtn{cursor:pointer; border:1px solid var(--hair); background:var(--surface); color:var(--ink-2);
+    width:34px;height:30px; border-radius:8px; display:grid; place-items:center; font-size:.9rem}
+  .tbtn:hover{color:var(--accent); border-color:var(--accent)}
+
+  /* ============ HERO ============ */
+  .hero{padding:76px 0 40px}
+  .hero h1{
+    font-size:clamp(2.4rem,6vw,4.4rem); line-height:1.02; letter-spacing:-.03em; font-weight:800;
+    margin:.35em 0 .28em; text-wrap:balance;
+  }
+  .hero .lede{font-size:clamp(1.12rem,2.3vw,1.5rem); color:var(--ink-2); max-width:34ch; text-wrap:balance;
+    font-weight:500; margin:0 0 .2em}
+  .hero .intro{max-width:60ch; color:var(--muted); margin:18px 0 0}
+  .hero .intro b{color:var(--ink-2); font-weight:600}
+
+  .cta{display:flex; flex-wrap:wrap; gap:10px; margin-top:30px}
+  .btn{display:inline-flex; align-items:center; gap:.5em; font-family:var(--mono); font-size:.84rem;
+    padding:.72em 1.05em; border-radius:10px; text-decoration:none; border:1px solid var(--hair);
+    background:var(--surface); color:var(--ink); transition:transform .12s ease, border-color .12s ease}
+  .btn:hover{transform:translateY(-1px); border-color:var(--accent)}
+  .btn.primary{background:var(--accent); color:var(--accent-ink); border-color:transparent}
+  .btn.primary:hover{filter:brightness(1.06)}
+  .btn svg{width:16px;height:16px}
+
+  .glance{display:flex; flex-wrap:wrap; gap:28px 40px; margin-top:40px; padding-top:26px; border-top:1px solid var(--hair)}
+  .stat .n{font-family:var(--mono); font-size:1.7rem; font-weight:600; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+  .stat .l{font-size:.8rem; color:var(--muted); margin-top:2px}
+
+  /* ============ PIPELINE STRIP (thesis visual) ============ */
+  .pipe{margin:14px 0 4px; border:1px solid var(--hair); border-radius:14px; background:
+    linear-gradient(180deg,var(--surface),var(--card)); box-shadow:var(--shadow); overflow:hidden}
+  .pipe-head{display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:12px 16px; border-bottom:1px solid var(--hair)}
+  .pipe-head .t{font-family:var(--mono); font-size:.78rem; color:var(--muted)}
+  .pipe-flow{display:flex; align-items:stretch; gap:0; overflow-x:auto; padding:18px 16px}
+  .stage{flex:1 0 auto; min-width:118px; display:flex; flex-direction:column; gap:6px; padding:0 14px;
+    position:relative}
+  .stage + .stage::before{content:"→"; position:absolute; left:-.55em; top:6px; color:var(--muted);
+    font-family:var(--mono)}
+  .stage .k{font-family:var(--mono); font-size:.72rem; color:var(--accent); font-weight:600}
+  .stage .v{font-size:.86rem; color:var(--ink-2)}
+  .stage .m{font-family:var(--mono); font-size:.68rem; color:var(--muted)}
+
+  /* ============ SECTIONS ============ */
+  section{padding:56px 0; border-top:1px solid var(--hair)}
+  .sec-head{display:flex; align-items:baseline; gap:14px; margin-bottom:28px}
+  .sec-head .mark{font-family:var(--mono); font-size:.8rem; color:var(--accent); font-weight:600}
+  .sec-head h2{font-size:clamp(1.5rem,3vw,2rem); letter-spacing:-.02em; margin:0; font-weight:750}
+
+  /* capabilities */
+  .caps{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:16px}
+  .cap{border:1px solid var(--hair); border-radius:12px; padding:20px; background:var(--surface)}
+  .cap h3{margin:0 0 4px; font-size:1rem; letter-spacing:-.01em}
+  .cap p{margin:0 0 14px; font-size:.85rem; color:var(--muted)}
+  .tags{display:flex; flex-wrap:wrap; gap:6px}
+  .tag{font-family:var(--mono); font-size:.72rem; padding:.24em .55em; border-radius:6px;
+    background:var(--card-2); color:var(--ink-2)}
+
+  /* projects */
+  .projects{display:flex; flex-direction:column; gap:18px}
+  .proj{border:1px solid var(--hair); border-radius:16px; background:var(--surface); box-shadow:var(--shadow);
+    overflow:hidden}
+  .proj-top{display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:18px 20px 0}
+  .proj-top h3{margin:0; font-size:1.2rem; letter-spacing:-.01em; flex:1 1 auto; min-width:60%}
+  .proj-body{padding:12px 20px 20px; display:grid; grid-template-columns:1.4fr 1fr; gap:22px}
+  .proj-body p{margin:.2em 0 0; color:var(--ink-2)}
+  .proj-body .desc{font-size:.95rem}
+  .wins{list-style:none; margin:14px 0 0; padding:0; display:flex; flex-direction:column; gap:8px}
+  .wins li{position:relative; padding-left:22px; font-size:.88rem; color:var(--ink-2)}
+  .wins li::before{content:"✓"; position:absolute; left:0; top:0; color:var(--ok); font-weight:700}
+  .proj-side{border-left:1px solid var(--hair); padding-left:22px}
+  .proj-side .lbl{font-family:var(--mono); font-size:.68rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:8px}
+  .proj-links{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px}
+  .proj-links a{font-family:var(--mono); font-size:.78rem; text-decoration:none; padding:.45em .7em;
+    border:1px solid var(--hair); border-radius:8px; color:var(--ink); display:inline-flex; gap:.4em; align-items:center}
+  .proj-links a:hover{border-color:var(--accent); color:var(--accent)}
+  .proj-links a.na{opacity:.55; pointer-events:none}
+  .stack{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px}
+
+  /* experience */
+  .xp{display:flex; flex-direction:column; gap:0}
+  .xp-item{display:grid; grid-template-columns:150px 1fr; gap:22px; padding:20px 0; border-top:1px dashed var(--hair)}
+  .xp-item:first-child{border-top:none}
+  .xp-when{font-family:var(--mono); font-size:.8rem; color:var(--muted)}
+  .xp-role{font-weight:650; margin:0}
+  .xp-org{color:var(--accent); font-size:.9rem; font-family:var(--mono)}
+  .xp-item p{margin:.5em 0 0; color:var(--muted); font-size:.9rem; max-width:66ch}
+
+  /* contact */
+  .contact{border-top:1px solid var(--hair); text-align:left}
+  .contact h2{font-size:clamp(1.6rem,3.4vw,2.3rem); letter-spacing:-.02em; margin:0 0 .3em; text-wrap:balance}
+  .contact p{color:var(--muted); max-width:52ch; margin:0 0 24px}
+  footer{padding:34px 0 60px; color:var(--muted); font-family:var(--mono); font-size:.76rem;
+    display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; border-top:1px solid var(--hair)}
+
+  .reveal{opacity:0; transform:translateY(10px); animation:rise .6s cubic-bezier(.2,.7,.2,1) forwards}
+  .reveal:nth-child(2){animation-delay:.05s}.reveal:nth-child(3){animation-delay:.1s}
+  @keyframes rise{to{opacity:1; transform:none}}
+
+  a:focus-visible,.btn:focus-visible,.tbtn:focus-visible,.proj-links a:focus-visible{
+    outline:2px solid var(--accent); outline-offset:2px; border-radius:8px}
+
+  @media (max-width:760px){
+    .proj-body{grid-template-columns:1fr}
+    .proj-side{border-left:none; border-top:1px solid var(--hair); padding-left:0; padding-top:16px}
+    .xp-item{grid-template-columns:1fr; gap:6px}
+    .avail{display:none}
+    .hero{padding:52px 0 30px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important; scroll-behavior:auto !important}
+    .reveal{opacity:1; transform:none}
+  }
+</style>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="brand"><span class="at">~/</span>tran-le-trung-kien</div>
+    <div class="topbar-right">
+      <span class="avail"><span class="dot"></span>Available · Remote · GMT+7</span>
+      <button class="tbtn" id="themeToggle" aria-label="Đổi giao diện sáng/tối" title="Sáng / Tối">◐</button>
+    </div>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow reveal">// .NET Backend · DevOps / GitOps</p>
+    <h1 class="reveal">Trần Lê Trung Kiên</h1>
+    <p class="lede reveal">Tôi viết .NET — và tự dựng cái pipeline đưa nó lên production.</p>
+    <p class="intro reveal">
+      Lập trình viên backend .NET (2 năm) làm trên hệ thống <b>ERP / hoá đơn điện tử</b> production thật —
+      SQL Server, phân quyền phức tạp, tích hợp. Tự học và mở rộng sang <b>DevOps</b>: tự động hoá release,
+      dựng <b>CI/CD + Kubernetes (GitOps)</b> chạy thật. Làm được cả hai đầu — code và hạ tầng đưa code lên production.
+    </p>
+
+    <div class="cta reveal">
+      <a class="btn primary" href="mailto:kientlt59@gmail.com">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        Liên hệ
+      </a>
+      <a class="btn" href="https://github.com/Tranletrungkien1705" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.8 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.5-2.7 5.5-5.3 5.8.4.3.8 1 .8 2.1v3.1c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5Z"/></svg>
+        GitHub
+      </a>
+    </div>
+
+    <div class="glance reveal">
+      <div class="stat"><div class="n">2</div><div class="l">năm .NET / C# (production)</div></div>
+      <div class="stat"><div class="n">Prod</div><div class="l">ERP · e-invoice thật</div></div>
+      <div class="stat"><div class="n">GitOps</div><div class="l">k8s · Argo CD · CI/CD thật</div></div>
+      <div class="stat"><div class="n">1&nbsp;push</div><div class="l">→ tự build → deploy</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="pipe" aria-label="Vòng CI/CD GitOps đã dựng và chạy thật">
+    <div class="pipe-head">
+      <span class="t">// deploy-loop &nbsp;·&nbsp; cicd-k8s-lab</span>
+      <span class="chip live"><span class="dot"></span>LIVE</span>
+    </div>
+    <div class="pipe-flow">
+      <div class="stage"><span class="k">git push</span><span class="v">Commit lên main</span><span class="m">source of truth</span></div>
+      <div class="stage"><span class="k">CI</span><span class="v">Test · Build image</span><span class="m">GitHub Actions</span></div>
+      <div class="stage"><span class="k">registry</span><span class="v">Push image :sha</span><span class="m">private registry</span></div>
+      <div class="stage"><span class="k">GitOps</span><span class="v">Bump manifest</span><span class="m">Argo CD auto-sync</span></div>
+      <div class="stage"><span class="k">k8s</span><span class="v">Rolling update</span><span class="m">zero-downtime</span></div>
+      <div class="stage"><span class="k">live</span><span class="v">Version mới chạy</span><span class="m">Prometheus + Grafana</span></div>
+    </div>
+  </div>
+</div>
+
+<section id="skills">
+  <div class="wrap">
+    <div class="sec-head"><span class="mark">01</span><h2>Năng lực</h2></div>
+    <div class="caps">
+      <div class="cap">
+        <h3>Backend .NET</h3>
+        <p>Cốt lõi nhiều năm — hệ thống nghiệp vụ thật.</p>
+        <div class="tags"><span class="tag">C# / .NET</span><span class="tag">ASP.NET</span><span class="tag">Web API</span><span class="tag">SQL Server</span><span class="tag">T-SQL</span><span class="tag">ADO.NET</span></div>
+      </div>
+      <div class="cap">
+        <h3>DevOps &amp; Cloud</h3>
+        <p>Tự động hoá build → deploy, hạ tầng container.</p>
+        <div class="tags"><span class="tag">Docker</span><span class="tag">Kubernetes</span><span class="tag">Argo CD</span><span class="tag">GitHub Actions</span><span class="tag">GitOps</span><span class="tag">Helm</span></div>
+      </div>
+      <div class="cap">
+        <h3>Data &amp; Messaging</h3>
+        <p>Xử lý dữ liệu, realtime, tích hợp.</p>
+        <div class="tags"><span class="tag">SQL Server</span><span class="tag">Kafka</span><span class="tag">REST API</span><span class="tag">e-Invoice</span><span class="tag">Integration</span></div>
+      </div>
+      <div class="cap">
+        <h3>Observability &amp; Practices</h3>
+        <p>Nhìn được hệ thống, làm việc có kỷ luật.</p>
+        <div class="tags"><span class="tag">Prometheus</span><span class="tag">Grafana</span><span class="tag">Git</span><span class="tag">Linux / WSL</span><span class="tag">Bash / PowerShell</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="wrap">
+    <div class="sec-head"><span class="mark">02</span><h2>Dự án tiêu biểu</h2></div>
+    <div class="projects">
+
+      <article class="proj">
+        <div class="proj-top">
+          <h3>cicd-k8s-lab — GitOps trên Kubernetes</h3>
+          <span class="chip accent">Flagship</span>
+          <span class="chip live"><span class="dot"></span>Live demo</span>
+        </div>
+        <div class="proj-body">
+          <div>
+            <p class="desc">Một hệ CI/CD hiện đại hoàn chỉnh, tự tay dựng và chạy thật: đẩy code là tự
+              động build → push image → cập nhật manifest → <b>Argo CD tự đồng bộ</b> → rolling update trên
+              Kubernetes, kèm giám sát Prometheus/Grafana.</p>
+            <ul class="wins">
+              <li>Vòng GitOps khép kín: 1 <span class="mono">git push</span> → version mới lên cluster, không chạm tay.</li>
+              <li>Tự cô lập &amp; xử lý sự cố thật: giới hạn RAM WSL, server-side apply CRD, lỗi YAML gãy pipeline.</li>
+              <li>k3d + registry riêng + ingress-nginx + Argo CD + kube-prometheus-stack, dựng bằng 1 script.</li>
+            </ul>
+          </div>
+          <div class="proj-side">
+            <div class="lbl">Stack</div>
+            <div class="stack">
+              <span class="tag">Kubernetes</span><span class="tag">k3d</span><span class="tag">Argo CD</span>
+              <span class="tag">GitHub Actions</span><span class="tag">Docker</span><span class="tag">Node</span>
+              <span class="tag">Prometheus</span><span class="tag">Grafana</span>
+            </div>
+            <div class="proj-links">
+              <a href="REPLACE_LIVE_DEMO_URL" target="_blank" rel="noopener">▶ Live demo</a>
+              <a href="https://github.com/Tranletrungkien1705/cicd-k8s-lab" target="_blank" rel="noopener">◈ Source</a>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="proj">
+        <div class="proj-top">
+          <h3>Automated release cho .NET ERP legacy</h3>
+          <span class="chip">Case study</span>
+        </div>
+        <div class="proj-body">
+          <div>
+            <p class="desc">Thay quy trình deploy tay (build IDE → copy tay lên server) của một hệ ERP /
+              hoá đơn .NET lớn bằng pipeline tự động: build → backup có phiên bản → deploy → smoke test,
+              cổng release theo tag để an toàn cho hệ thống production.</p>
+            <ul class="wins">
+              <li>Loại rủi ro con người: backup theo timestamp + rollback 1 lệnh + loại trừ config production.</li>
+              <li>Cổng release theo tag/duyệt tay — hợp hệ thống hoá đơn/phân quyền nhạy cảm.</li>
+              <li>Kèm luồng auto-fix có kiểm soát (PR-gated) — máy đề xuất, người duyệt.</li>
+            </ul>
+          </div>
+          <div class="proj-side">
+            <div class="lbl">Stack</div>
+            <div class="stack">
+              <span class="tag">.NET</span><span class="tag">MSBuild</span><span class="tag">PowerShell</span>
+              <span class="tag">GitHub Actions</span><span class="tag">IIS</span><span class="tag">Robocopy</span>
+            </div>
+            <div class="proj-links">
+              <a class="na" href="#">◈ Private (NDA)</a>
+            </div>
+            <p style="font-size:.76rem;color:var(--muted);margin-top:12px">Mã nguồn thuộc doanh nghiệp — chỉ trình bày kiến trúc &amp; vai trò.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="proj">
+        <div class="proj-top">
+          <h3>Nền tảng self-host &amp; giám sát realtime</h3>
+          <span class="chip">Side project</span>
+        </div>
+        <div class="proj-body">
+          <div>
+            <p class="desc">Cụm dịch vụ tự vận hành trên hạ tầng riêng: API Node, tunnel công khai,
+              lab Kafka (3 broker KRaft) và bộ giám sát realtime — chạy trong Docker/WSL, tự khởi động lại,
+              theo dõi vòng đời.</p>
+            <ul class="wins">
+              <li>Nhiều container dịch vụ chạy bền, tự phục hồi (restart policy + systemd).</li>
+              <li>Hiểu sâu vòng đời WSL/dockerd, mạng, port-forward, tunnel.</li>
+              <li>Lab Kafka để nắm chắc kiến trúc broker/partition/consumer group.</li>
+            </ul>
+          </div>
+          <div class="proj-side">
+            <div class="lbl">Stack</div>
+            <div class="stack">
+              <span class="tag">Docker</span><span class="tag">Kafka</span><span class="tag">Node</span>
+              <span class="tag">Linux / WSL</span><span class="tag">Cloudflare Tunnel</span>
+            </div>
+            <div class="proj-links">
+              <a class="na" href="#">◈ Private</a>
+            </div>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section id="experience">
+  <div class="wrap">
+    <div class="sec-head"><span class="mark">03</span><h2>Kinh nghiệm</h2></div>
+    <div class="xp">
+      <div class="xp-item">
+        <div class="xp-when">Hiện tại</div>
+        <div>
+          <p class="xp-role">.NET Developer <span class="xp-org">· hệ ERP / e-Invoice</span></p>
+          <p>Phát triển &amp; bảo trì hệ thống nghiệp vụ lớn: hoá đơn điện tử, phân quyền phức tạp,
+             tích hợp. Nâng cấp module, audit đối chiếu nghiệp vụ, tối ưu SQL, và tự động hoá quy trình deploy.</p>
+        </div>
+      </div>
+      <div class="xp-item">
+        <div class="xp-when">Song song</div>
+        <div>
+          <p class="xp-role">DevOps / Homelab <span class="xp-org">· tự học ứng dụng</span></p>
+          <p>Dựng CI/CD + Kubernetes GitOps chạy thật, container hoá ứng dụng, giám sát Prometheus/Grafana,
+             lab Kafka — biến kiến thức hạ tầng thành thứ chạy được, có bằng chứng.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <div class="wrap">
+    <p class="eyebrow">// let's talk</p>
+    <h2>Đang mở cơ hội remote (.NET / DevOps).</h2>
+    <p>Nếu bạn cần một người vừa viết được backend .NET vững vừa tự lo được pipeline đưa nó lên production —
+       ta nói chuyện nhé.</p>
+    <div class="cta">
+      <a class="btn primary" href="mailto:kientlt59@gmail.com">Email tôi</a>
+      <a class="btn" href="https://github.com/Tranletrungkien1705" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;width:100%;padding:0 24px">
+    <span>© 2026 Trần Lê Trung Kiên</span>
+    <span>Built as static HTML · auto-deployed via GitHub Actions</span>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var root=document.documentElement, key="pf-theme";
+    var saved=null; try{saved=localStorage.getItem(key)}catch(e){}
+    if(saved){root.setAttribute("data-theme",saved)}
+    document.getElementById("themeToggle").addEventListener("click",function(){
+      var cur=root.getAttribute("data-theme");
+      if(!cur){cur=matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light"}
+      var next=cur==="dark"?"light":"dark";
+      root.setAttribute("data-theme",next);
+      try{localStorage.setItem(key,next)}catch(e){}
+    });
+  })();
+</script>
