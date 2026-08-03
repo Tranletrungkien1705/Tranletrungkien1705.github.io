@@ -154,6 +154,35 @@
   .proj-links a.na{opacity:.55; pointer-events:none}
   .stack{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px}
 
+  /* CI/CD activity feed (dữ liệu thật từ GitHub API) */
+  .ci-badges{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px}
+  .ci-badges img{height:20px}
+  .ci-note{font-size:.86rem; color:var(--muted); margin:0 0 18px; max-width:64ch}
+  .ci-note code{font-family:var(--mono); font-size:.82em; background:var(--card-2); padding:.1em .4em; border-radius:5px}
+  .feed{border:1px solid var(--hair); border-radius:14px; background:var(--surface); overflow:hidden; box-shadow:var(--shadow)}
+  .feed-row{display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:14px;
+    padding:13px 18px; border-top:1px solid var(--hair); text-decoration:none; color:inherit}
+  .feed-row:first-child{border-top:none}
+  .feed-row:hover{background:var(--card)}
+  .feed-ico{width:9px; height:9px; border-radius:50%; flex:none}
+  .feed-ico.ok{background:var(--ok)} .feed-ico.fail{background:#e5484d}
+  .feed-ico.run{background:#f5a623; animation:pulse 1.6s infinite} .feed-ico.other{background:var(--muted)}
+  .feed-main{min-width:0}
+  .feed-title{font-size:.9rem; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .feed-meta{font-family:var(--mono); font-size:.72rem; color:var(--muted); margin-top:2px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .feed-meta .repo{color:var(--accent)}
+  .feed-right{font-family:var(--mono); font-size:.74rem; color:var(--muted); text-align:right; white-space:nowrap}
+  .feed-right .dur{display:block; font-size:.68rem; opacity:.8}
+  .feed-empty{padding:20px 18px; color:var(--muted); font-size:.88rem}
+  .feed-sum{display:flex; flex-wrap:wrap; gap:20px 34px; margin-top:18px}
+  .feed-sum .n{font-family:var(--mono); font-size:1.15rem; color:var(--ink); font-variant-numeric:tabular-nums}
+  .feed-sum .l{font-size:.76rem; color:var(--muted)}
+  .skel{height:14px; border-radius:6px; background:linear-gradient(90deg,var(--card),var(--card-2),var(--card));
+    background-size:200% 100%; animation:sk 1.3s infinite}
+  @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  @media (max-width:600px){ .feed-row{grid-template-columns:auto 1fr; } .feed-right{grid-column:2; text-align:left; margin-top:2px} }
+
   /* experience */
   .xp{display:flex; flex-direction:column; gap:0}
   .xp-item{display:grid; grid-template-columns:150px 1fr; gap:22px; padding:20px 0; border-top:1px dashed var(--hair)}
@@ -392,9 +421,29 @@
   </div>
 </section>
 
+<section id="cicd">
+  <div class="wrap">
+    <div class="sec-head"><span class="mark">03</span><h2>CI/CD Activity — lịch sử thật</h2></div>
+    <div class="ci-badges">
+      <img alt="Deploy portfolio status" src="https://github.com/Tranletrungkien1705/Tranletrungkien1705.github.io/actions/workflows/deploy.yml/badge.svg" />
+      <img alt="cicd-k8s-lab CI status" src="https://github.com/Tranletrungkien1705/cicd-k8s-lab/actions/workflows/ci.yml/badge.svg" />
+    </div>
+    <p class="ci-note">
+      Chính trang này và dự án <code>cicd-k8s-lab</code> đều build &amp; deploy <b>tự động</b>. Dưới đây là
+      lịch sử pipeline <b>thật</b>, lấy trực tiếp từ GitHub API mỗi lần bạn mở trang — không phải ảnh chụp.
+    </p>
+    <div class="feed" id="ciFeed" aria-live="polite">
+      <div class="feed-row"><span class="feed-ico other"></span><div class="feed-main"><div class="feed-title skel" style="width:60%">&nbsp;</div><div class="feed-meta skel" style="width:35%;margin-top:6px">&nbsp;</div></div><div class="feed-right skel" style="width:48px">&nbsp;</div></div>
+      <div class="feed-row"><span class="feed-ico other"></span><div class="feed-main"><div class="feed-title skel" style="width:48%">&nbsp;</div><div class="feed-meta skel" style="width:30%;margin-top:6px">&nbsp;</div></div><div class="feed-right skel" style="width:48px">&nbsp;</div></div>
+      <div class="feed-row"><span class="feed-ico other"></span><div class="feed-main"><div class="feed-title skel" style="width:54%">&nbsp;</div><div class="feed-meta skel" style="width:32%;margin-top:6px">&nbsp;</div></div><div class="feed-right skel" style="width:48px">&nbsp;</div></div>
+    </div>
+    <div class="feed-sum" id="ciSum"></div>
+  </div>
+</section>
+
 <section id="experience">
   <div class="wrap">
-    <div class="sec-head"><span class="mark">03</span><h2>Kinh nghiệm</h2></div>
+    <div class="sec-head"><span class="mark">04</span><h2>Kinh nghiệm</h2></div>
     <div class="xp">
       <div class="xp-item">
         <div class="xp-when">Hiện tại</div>
@@ -584,5 +633,70 @@
     window.__pfReadColors=readColors;
   }
   function readColors(){ if(window.__pfReadColors)window.__pfReadColors(); }
+
+  /* ---------- CI/CD Activity: lịch sử thật từ GitHub API ---------- */
+  (function(){
+    var feed=document.getElementById("ciFeed"), sum=document.getElementById("ciSum");
+    if(!feed) return;
+    var REPOS=[
+      {full:"Tranletrungkien1705/Tranletrungkien1705.github.io", short:"portfolio"},
+      {full:"Tranletrungkien1705/cicd-k8s-lab", short:"cicd-k8s-lab"}
+    ];
+    function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){
+      return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]})}
+    function ago(iso){var s=Math.floor((Date.now()-new Date(iso))/1000);
+      if(isNaN(s))return""; if(s<60)return"vừa xong";
+      var m=Math.floor(s/60); if(m<60)return m+" phút trước";
+      var h=Math.floor(m/60); if(h<24)return h+" giờ trước";
+      var d=Math.floor(h/24); if(d<30)return d+" ngày trước";
+      var mo=Math.floor(d/30); if(mo<12)return mo+" tháng trước";
+      return Math.floor(mo/12)+" năm trước";}
+    function dur(a,b){var s=Math.floor((new Date(b)-new Date(a))/1000);
+      if(isNaN(s)||s<0)return""; if(s<60)return s+"s"; return Math.floor(s/60)+"m "+(s%60)+"s";}
+    function cls(run){var c=run.conclusion;
+      if(c==="success")return"ok"; if(c==="failure"||c==="timed_out"||c==="startup_failure")return"fail";
+      if(run.status!=="completed")return"run"; return"other";}
+
+    function render(all){
+      if(!all.length){ feed.innerHTML='<div class="feed-empty">Chưa lấy được dữ liệu (có thể do giới hạn API). '+
+        'Xem trực tiếp: <a href="https://github.com/Tranletrungkien1705?tab=repositories" target="_blank" rel="noopener">GitHub Actions →</a></div>'; return; }
+      all.sort(function(a,b){return new Date(b.run_started_at||b.created_at)-new Date(a.run_started_at||a.created_at)});
+      var top=all.slice(0,7);
+      feed.innerHTML=top.map(function(r){
+        var title=(r.display_title||r.name||"run").split("\n")[0];
+        var sha=(r.head_sha||"").slice(0,7);
+        var start=r.run_started_at||r.created_at;
+        var d=dur(start,r.updated_at);
+        return '<a class="feed-row" href="'+esc(r.html_url)+'" target="_blank" rel="noopener">'+
+          '<span class="feed-ico '+cls(r)+'"></span>'+
+          '<div class="feed-main"><div class="feed-title">'+esc(title)+'</div>'+
+          '<div class="feed-meta"><span class="repo">'+esc(r._repo)+'</span> · '+esc(r.name)+' · #'+esc(sha)+'</div></div>'+
+          '<div class="feed-right">'+esc(ago(start))+(d?'<span class="dur">⏱ '+d+'</span>':'')+'</div></a>';
+      }).join("");
+      var ok=all.filter(function(r){return r.conclusion==="success"}).length;
+      var rate=all.length?Math.round(ok/all.length*100):0;
+      var last=top[0]?ago(top[0].run_started_at||top[0].created_at):"—";
+      sum.innerHTML=
+        '<div><div class="n">'+all.length+'</div><div class="l">lần chạy gần đây</div></div>'+
+        '<div><div class="n">'+rate+'%</div><div class="l">tỉ lệ thành công ('+ok+'/'+all.length+')</div></div>'+
+        '<div><div class="n">'+esc(last)+'</div><div class="l">deploy gần nhất</div></div>'+
+        '<div><div class="n">2</div><div class="l">pipeline tự động (Pages + GitOps)</div></div>';
+    }
+
+    var CK="pf-ci-cache";
+    try{var c=JSON.parse(sessionStorage.getItem(CK)||"null");
+      if(c&&Date.now()-c.t<300000){render(c.d);return;}}catch(e){}
+
+    Promise.all(REPOS.map(function(r){
+      return fetch("https://api.github.com/repos/"+r.full+"/actions/runs?per_page=6")
+        .then(function(x){return x.ok?x.json():{workflow_runs:[]}})
+        .then(function(j){return(j.workflow_runs||[]).map(function(run){run._repo=r.short;return run})})
+        .catch(function(){return[]});
+    })).then(function(lists){
+      var all=Array.prototype.concat.apply([],lists);
+      try{sessionStorage.setItem(CK,JSON.stringify({t:Date.now(),d:all}))}catch(e){}
+      render(all);
+    }).catch(function(){render([])});
+  })();
 })();
 </script>
