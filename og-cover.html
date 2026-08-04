@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  *{margin:0;box-sizing:border-box}
+  html,body{width:1200px;height:630px;overflow:hidden}
+  body{background:radial-gradient(900px 500px at 78% -10%,#241b4a,transparent),#0d0e12;
+    color:#edeef2;font-family:'Segoe UI',system-ui,sans-serif;padding:70px 74px;position:relative}
+  .mono{font-family:'Cascadia Code','Consolas',monospace}
+  .eyebrow{font-family:'Cascadia Code','Consolas',monospace;color:#9d8cff;font-size:22px;letter-spacing:.16em;
+    text-transform:uppercase;font-weight:600}
+  h1{font-size:82px;line-height:1.03;letter-spacing:-.03em;margin:20px 0 14px;font-weight:800}
+  .lede{font-size:31px;color:#c3c7d0;max-width:30ch;line-height:1.25;font-weight:500}
+  .tags{position:absolute;left:74px;bottom:135px;display:flex;gap:12px;flex-wrap:wrap;max-width:820px}
+  .tag{font-family:'Cascadia Code','Consolas',monospace;font-size:22px;background:#1c2130;color:#edeef2;
+    padding:8px 16px;border-radius:10px;border:1px solid #2a3040}
+  .foot{position:absolute;left:74px;bottom:60px;display:flex;align-items:center;gap:22px;
+    font-family:'Cascadia Code','Consolas',monospace;font-size:24px;color:#9aa0ad}
+  .chip{display:inline-flex;align-items:center;gap:10px;background:#12251d;color:#34d399;
+    padding:8px 18px;border-radius:999px;font-weight:600}
+  .dot{width:12px;height:12px;border-radius:50%;background:#34d399}
+  .pipe{position:absolute;right:74px;top:90px;font-family:'Cascadia Code','Consolas',monospace;
+    font-size:20px;color:#5b6472;text-align:right;line-height:2.1}
+  .pipe b{color:#9d8cff}
+</style></head><body>
+  <div class="eyebrow">// .NET Backend · DevOps / GitOps</div>
+  <h1>Trần Lê<br>Trung Kiên</h1>
+  <div class="lede">Tôi viết .NET — và tự dựng pipeline đưa nó lên production.</div>
+  <div class="pipe">git push <b>→</b> CI<br>build <b>→</b> registry<br>Argo sync <b>→</b> k8s<br><b>→ live</b></div>
+  <div class="tags">
+    <span class="tag">C# / .NET 8</span><span class="tag">SQL Server</span><span class="tag">Kubernetes</span>
+    <span class="tag">Argo CD</span><span class="tag">GitHub Actions</span><span class="tag">Docker</span>
+  </div>
+  <div class="foot">
+    <span class="chip"><span class="dot"></span>LIVE DEMO + CI/CD thật</span>
+    <span>github.com/Tranletrungkien1705</span>
+  </div>
+</body></html>
