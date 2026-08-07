@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<title>Analytics · Portfolio</title>
+<style>
+  :root{--bg:#0d0e12;--card:#161a22;--card2:#1c2130;--ink:#edeef2;--mut:#9aa0ad;--acc:#9d8cff;
+    --ok:#34d399;--warn:#fbbf24;--hair:#262c39;--mono:ui-monospace,"Cascadia Code",Menlo,Consolas,monospace}
+  @media (prefers-color-scheme:light){:root{--bg:#f6f6f8;--card:#fff;--card2:#eef0f4;--ink:#15171d;--mut:#6b7180;--hair:#e3e5ea}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 0;border-bottom:1px solid var(--hair);flex-wrap:wrap}
+  h1{font-size:1.3rem;margin:0;letter-spacing:-.02em}
+  h1 .d{color:var(--acc)}
+  .btn{cursor:pointer;border:1px solid var(--hair);background:var(--card);color:var(--ink);border-radius:10px;
+    padding:.55em 1em;font:.85rem var(--mono);text-decoration:none}
+  .btn:hover{border-color:var(--acc);color:var(--acc)}
+  .btn.pri{background:var(--acc);color:#0d0e12;border-color:transparent}
+  .who{font:.8rem var(--mono);color:var(--mut)}
+  .gate{max-width:420px;margin:16vh auto;text-align:center;padding:32px;background:var(--card);border:1px solid var(--hair);border-radius:16px}
+  .gate h2{margin:.2em 0 .4em}.gate p{color:var(--mut)}
+  .hide{display:none!important}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:22px 0}
+  .tile{background:var(--card);border:1px solid var(--hair);border-radius:12px;padding:16px}
+  .tile .n{font:600 1.8rem var(--mono);letter-spacing:-.02em}
+  .tile .n.acc{color:var(--acc)} .tile .n.ok{color:var(--ok)}
+  .tile .l{font-size:.78rem;color:var(--mut);margin-top:2px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+  .panel{background:var(--card);border:1px solid var(--hair);border-radius:12px;padding:16px}
+  .panel h3{margin:0 0 12px;font-size:.95rem}
+  canvas{max-height:260px}
+  table{width:100%;border-collapse:collapse;font-size:.86rem}
+  td,th{text-align:left;padding:7px 6px;border-bottom:1px solid var(--hair)}
+  th{color:var(--mut);font:.7rem var(--mono);text-transform:uppercase;letter-spacing:.06em}
+  td.n{text-align:right;font-family:var(--mono)}
+  .muted{color:var(--mut);font-size:.85rem}
+  .foot{padding:24px 0 50px;color:var(--mut);font:.78rem var(--mono)}
+  .foot a{color:var(--acc)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📊 Analytics <span class="d">· portfolio</span></h1>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="who" id="who"></span>
+      <button class="btn" id="signout" hidden>Đăng xuất</button>
+      <a class="btn" href="./" title="Về portfolio">← Trang chính</a>
+    </div>
+  </header>
+
+  <!-- chưa đăng nhập -->
+  <div class="gate" id="gate">
+    <h2>Khu vực riêng</h2>
+    <p id="gate-msg">Đăng nhập Google (chỉ email chủ trang) để xem số liệu hành vi người dùng.</p>
+    <button class="btn pri" id="signin">Đăng nhập với Google</button>
+    <p class="muted" id="gate-note" style="margin-top:16px"></p>
+  </div>
+
+  <!-- dashboard -->
+  <main id="dash" class="hide">
+    <div class="tiles">
+      <div class="tile"><div class="n acc" id="t-views">—</div><div class="l">Lượt xem (widget)</div></div>
+      <div class="tile"><div class="n ok" id="t-inter">—</div><div class="l">Tương tác</div></div>
+      <div class="tile"><div class="n" id="t-sessions">—</div><div class="l">Phiên (unique)</div></div>
+      <div class="tile"><div class="n" id="t-events">—</div><div class="l">Tổng sự kiện</div></div>
+      <div class="tile"><div class="n" id="t-dwell">—</div><div class="l">TB thời gian (giây)</div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel"><h3>Sự kiện theo ngày</h3><canvas id="c-day"></canvas></div>
+      <div class="panel"><h3>Loại sự kiện</h3><canvas id="c-type"></canvas></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h3>Ngôn ngữ (VI / EN)</h3><canvas id="c-lang"></canvas></div>
+      <div class="panel">
+        <h3>Hành động quan trọng</h3>
+        <table><tbody id="t-actions"></tbody></table>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h3>Dự án được click</h3><table><thead><tr><th>Dự án</th><th style="text-align:right">Click</th></tr></thead><tbody id="t-proj"></tbody></table></div>
+      <div class="panel"><h3>Nguồn truy cập (referrer)</h3><table><thead><tr><th>Nguồn</th><th style="text-align:right">Lượt</th></tr></thead><tbody id="t-ref"></tbody></table></div>
+    </div>
+    <p class="muted" id="loadinfo"></p>
+  </main>
+
+  <div class="foot">Dữ liệu ẩn danh · Firestore + GA4 · <a href="https://console.firebase.google.com/project/kien-portfolio-3f3e5" target="_blank" rel="noopener">Firebase Console</a></div>
+</div>
+
+<script type="module">
+import { firebaseConfig, OWNER_EMAIL, ENABLED } from './assets/firebase-config.js';
+const V='10.12.2';
+const gate=document.getElementById('gate'), dash=document.getElementById('dash');
+const gmsg=document.getElementById('gate-msg'), gnote=document.getElementById('gate-note');
+
+if(!ENABLED){ gmsg.textContent='Chưa cấu hình Firebase (dán config vào assets/firebase-config.js).'; document.getElementById('signin').hidden=true; }
+else {
+  const [{initializeApp},auth,fs]=await Promise.all([
+    import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`),
+    import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`),
+    import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`),
+  ]);
+  const app=initializeApp(firebaseConfig);
+  const A=auth.getAuth(app), db=fs.getFirestore(app);
+  const provider=new auth.GoogleAuthProvider();
+
+  document.getElementById('signin').onclick=()=>auth.signInWithPopup(A,provider).catch(e=>{gnote.textContent=e.message;});
+  document.getElementById('signout').onclick=()=>auth.signOut(A);
+
+  auth.onAuthStateChanged(A, async (user)=>{
+    if(!user){ gate.classList.remove('hide'); dash.classList.add('hide'); document.getElementById('signout').hidden=true; document.getElementById('who').textContent=''; return; }
+    document.getElementById('who').textContent=user.email;
+    document.getElementById('signout').hidden=false;
+    if(user.email!==OWNER_EMAIL){ gmsg.textContent='Tài khoản này không có quyền xem.'; gnote.textContent='Đăng nhập bằng '+OWNER_EMAIL; gate.classList.remove('hide'); dash.classList.add('hide'); return; }
+    gate.classList.add('hide'); dash.classList.remove('hide');
+    await load(fs, db);
+  });
+
+  async function load(fs, db){
+    let Chart; try{ Chart=(await import('https://cdn.jsdelivr.net/npm/chart.js@4.4.3/auto/+esm')).default; }catch(e){}
+    const {collection,query,orderBy,limit,getDocs,doc,getDoc}=fs;
+    // counter public
+    try{ const c=await getDoc(doc(db,'public_stats','counters')); const d=c.exists()?c.data():{};
+      document.getElementById('t-views').textContent=(d.views||0).toLocaleString();
+      document.getElementById('t-inter').textContent=(d.interactions||0).toLocaleString(); }catch(e){}
+    // events
+    const snap=await getDocs(query(collection(db,'events'),orderBy('ts','desc'),limit(3000)));
+    const evs=[]; snap.forEach(d=>evs.push(d.data()));
+    document.getElementById('t-events').textContent=evs.length.toLocaleString();
+    document.getElementById('loadinfo').textContent=`Đã đọc ${evs.length} sự kiện gần nhất.`;
+
+    const sids=new Set(), byType={}, byLang={vi:0,en:0}, byDay={}, proj={}, ref={}, act={live_demo:0,cv_download:0,github:0,email:0,phone:0,lang_switch:0};
+    let dwellSum=0, dwellN=0;
+    for(const e of evs){
+      sids.add(e.sid); byType[e.type]=(byType[e.type]||0)+1;
+      if(e.lang==='en')byLang.en++; else byLang.vi++;
+      const t=e.ts&&e.ts.toDate?e.ts.toDate():null;
+      if(t){ const k=t.toISOString().slice(0,10); byDay[k]=(byDay[k]||0)+1; }
+      if(e.type==='project_click'&&e.detail&&e.detail.project){ const p=e.detail.project; proj[p]=(proj[p]||0)+1; }
+      if(e.type==='page_view'&&e.detail){ const r=(e.detail.referrer||'direct'); const host=r==='direct'?'direct':(()=>{try{return new URL(r).hostname}catch(_){return r.slice(0,30)}})(); ref[host]=(ref[host]||0)+1; }
+      if(e.type in act) act[e.type]++;
+      if(e.type==='engagement'&&e.detail&&e.detail.seconds){ dwellSum+=e.detail.seconds; dwellN++; }
+    }
+    document.getElementById('t-sessions').textContent=sids.size.toLocaleString();
+    document.getElementById('t-dwell').textContent=dwellN?Math.round(dwellSum/dwellN):'—';
+
+    const AX=getComputedStyle(document.documentElement).getPropertyValue('--acc').trim()||'#9d8cff';
+    const MU=getComputedStyle(document.documentElement).getPropertyValue('--mut').trim()||'#9aa0ad';
+    const palette=['#9d8cff','#34d399','#fbbf24','#60a5fa','#f472b6','#f87171','#22d3ee','#a3e635'];
+    if(Chart){
+      const days=Object.keys(byDay).sort();
+      new Chart(document.getElementById('c-day'),{type:'line',data:{labels:days,datasets:[{data:days.map(d=>byDay[d]),borderColor:AX,backgroundColor:AX+'33',fill:true,tension:.3,pointRadius:2}]},options:opts()});
+      const tks=Object.keys(byType).sort((a,b)=>byType[b]-byType[a]);
+      new Chart(document.getElementById('c-type'),{type:'bar',data:{labels:tks,datasets:[{data:tks.map(k=>byType[k]),backgroundColor:AX}]},options:opts()});
+      new Chart(document.getElementById('c-lang'),{type:'doughnut',data:{labels:['VI','EN'],datasets:[{data:[byLang.vi,byLang.en],backgroundColor:[palette[0],palette[1]]}]},options:{plugins:{legend:{labels:{color:MU}}}}});
+    }
+    function opts(){return{plugins:{legend:{display:false}},scales:{x:{ticks:{color:MU,maxRotation:0,autoSkip:true},grid:{display:false}},y:{ticks:{color:MU},grid:{color:MU+'22'}}}};}
+
+    // bảng
+    const actRows=[['▶ Live demo',act.live_demo],['⬇ Tải CV',act.cv_download],['◈ GitHub',act.github],['✉ Email',act.email],['📞 Phone',act.phone],['🌐 Đổi ngôn ngữ',act.lang_switch]];
+    document.getElementById('t-actions').innerHTML=actRows.map(([k,v])=>`<tr><td>${k}</td><td class="n">${v}</td></tr>`).join('');
+    const top=(o)=>Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+    document.getElementById('t-proj').innerHTML=top(proj).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${v}</td></tr>`).join('')||'<tr><td class="muted" colspan=2>Chưa có click dự án</td></tr>';
+    document.getElementById('t-ref').innerHTML=top(ref).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${v}</td></tr>`).join('')||'<tr><td class="muted" colspan=2>Chưa có dữ liệu</td></tr>';
+  }
+}
+</script>
+</body>
+</html>

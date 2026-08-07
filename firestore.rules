@@ -1,0 +1,27 @@
+rules_version = '2';
+// Dán nội dung này vào Firebase Console → Firestore Database → Rules → Publish.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Sự kiện chi tiết: KHÁCH chỉ được TẠO (create), KHÔNG đọc/sửa/xoá.
+    // Chỉ owner (email trong Auth) mới đọc được để xem dashboard.
+    match /events/{id} {
+      allow create: if request.resource.data.type is string
+                    && request.resource.data.keys().hasOnly(['type','detail','sid','lang','path','ts']);
+      allow read:   if request.auth != null
+                    && request.auth.token.email == 'kientlt59@gmail.com';
+      allow update, delete: if false;
+    }
+
+    // Counter công khai (cho widget "lượt xem"): ai cũng ĐỌC được,
+    // ghi chỉ cho phép TĂNG tối đa +1 mỗi field (chống bơm số bậy).
+    match /public_stats/counters {
+      allow read: if true;
+      allow create: if true;
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['views','interactions','updated'])
+                    && request.resource.data.get('views', 0) <= resource.data.get('views', 0) + 1
+                    && request.resource.data.get('interactions', 0) <= resource.data.get('interactions', 0) + 1;
+    }
+  }
+}
